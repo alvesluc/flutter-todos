@@ -25,18 +25,15 @@ class AppBlocObserver extends BlocObserver {
   }
 }
 
-Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
+void bootstrap(Widget Function() builder) {
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
   };
 
-  await runZonedGuarded(
-    () async {
-      await BlocOverrides.runZoned(
-        () async => runApp(await builder()),
-        blocObserver: AppBlocObserver(),
-      );
-    },
+  Bloc.observer = AppBlocObserver();
+
+  runZonedGuarded(
+    () => runApp(builder()),
     (error, stackTrace) => log(error.toString(), stackTrace: stackTrace),
   );
 }
