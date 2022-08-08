@@ -38,6 +38,7 @@ class LocalStorageTodosApi extends TodosApi {
   void _init() {
     final todosJson = _getValue(todosCollectionKey);
     if (todosJson != null) {
+      // TODO: Improve readability.
       final todos = List<Map<dynamic, dynamic>>.from(
         jsonDecode(todosJson) as List,
       )
@@ -50,19 +51,31 @@ class LocalStorageTodosApi extends TodosApi {
   }
 
   @override
-  Future<int> clearCompleted() {
-    // TODO: implement clearCompleted
-    throw UnimplementedError();
+  Future<int> clearCompleted() async {
+    final todos = [..._todoStreamController.value];
+    final completedTodosAmount = todos.where((e) => e.isCompleted).length;
+    todos.removeWhere((e) => e.isCompleted);
+    _todoStreamController.add(todos);
+    await _setValue(todosCollectionKey, jsonEncode(todos));
+    return completedTodosAmount;
   }
 
   @override
-  Future<int> completeAll({required bool isCompleted}) {
-    // TODO: implement completeAll
-    throw UnimplementedError();
+  Future<int> completeAll({required bool isCompleted}) async {
+    final todos = [..._todoStreamController.value];
+    final changedTodos = todos.where((e) => e.isCompleted != isCompleted);
+    final changedTodosAmount = changedTodos.length;
+    final newTodos = <Todo>[];
+    for (final todo in todos) {
+      newTodos.add(todo.copyWith(isCompleted: isCompleted));
+    }
+    _todoStreamController.add(newTodos);
+    await _setValue(todosCollectionKey, jsonEncode(newTodos));
+    return changedTodosAmount;
   }
 
   @override
-  Future<void> deleteTodo(String id) {
+  Future<void> deleteTodo(String id) async {
     final todos = [..._todoStreamController.value];
     final todoIndex = todos.indexWhere((e) => e.id == id);
     if (todoIndex == -1) {
@@ -80,7 +93,7 @@ class LocalStorageTodosApi extends TodosApi {
   }
 
   @override
-  Future<void> saveTodo(Todo todo) {
+  Future<void> saveTodo(Todo todo) async {
     final todos = [..._todoStreamController.value];
     final todoIndex = todos.indexWhere((e) => e.id == todo.id);
     if (todoIndex >= 0) {
