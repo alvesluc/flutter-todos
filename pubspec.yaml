@@ -17,6 +17,7 @@ dependencies:
   intl: ^0.17.0
   local_storage_todos_api:
     path: packages/local_storage_todos_api
+  shared_preferences: ^2.0.15
   todos_api:
     path: packages/todos_api
   todos_repository:
